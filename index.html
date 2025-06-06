@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Wave Respiration</title>
+  <style>
+    /* (Garde le CSS inchangé, propre et joli) */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { 
+      height: 100%; 
+      background: #150025; 
+      color: #e0d9f2; 
+      font-family: 'Segoe UI', sans-serif; 
+    }
+    .container { 
+      text-align: center; 
+      max-width: 500px; 
+      margin: auto; 
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    h1 { 
+      margin-bottom: 1rem; 
+      font-size: 2rem; 
+      color: #cba0ff; 
+    }
+    .progress-container {
+      width: 100%;
+      background: #3e125f;
+      border-radius: 10px;
+      margin: 1rem 0;
+      height: 10px;
+    }
+    .progress-bar {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #6b1b86, #9750d7);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .phase-header {
+      margin-bottom: 1rem;
+    }
+    .phase-title { 
+      font-size: 1.2rem; 
+      margin-bottom: 0.3rem; 
+      color: #d8b4f2; 
+    }
+    .phase-subtitle {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 0.5rem;
+    }
+    .phase-info { 
+      margin-bottom: 1rem; 
+      font-size: 1rem; 
+    }
+    .circle {
+      width: 160px; 
+      height: 160px; 
+      border-radius: 50%; 
+      background: #3e125f;
+      margin: 1.5rem auto; 
+      transition: transform 0.5s ease-in-out, background-color 0.3s;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      position: relative;
+      box-shadow: 0 0 20px rgba(107, 27, 134, 0.5);
+    }
+    .timer { 
+      font-size: 2rem; 
+      position: absolute; 
+      color: #fff; 
+      font-weight: bold;
+    }
+    .controls {
+      margin-top: auto;
+      padding-bottom: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .controls button {
+      padding: 12px 24px; 
+      background: #6b1b86; 
+      border: none;
+      color: white; 
+      border-radius: 30px; 
+      font-size: 1rem; 
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 120px;
+    }
+    .controls button:hover { 
+      background: #9750d7; 
+      transform: translateY(-2px);
+    }
+    .controls button:active {
+      transform: translateY(0);
+    }
+    .controls button:disabled {
+      background: #3e125f;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .session-stats {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+    @media (max-width: 480px) {
+      .container {
+        padding: 1rem;
+      }
+      .circle {
+        width: 140px;
+        height: 140px;
+      }
+      .controls button {
+        padding: 10px 20px;
+        min-width: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Golden Wave Respiration</h1>
+    
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="phase-header">
+      <div class="phase-title" id="phaseTitle">Prêt à commencer</div>
+      <div class="phase-subtitle" id="phaseSubtitle"></div>
+    </div>
+    
+    <div class="phase-info" id="phaseInfo"></div>
+    
+    <div class="circle" id="circle">
+      <div class="timer" id="timer">--</div>
+    </div>
+    
+    <div class="controls">
+      <button id="startBtn">Démarrer</button>
+      <button id="pauseBtn" disabled>Pause</button>
+      <button id="resetBtn" disabled>Réinitialiser</button>
+    </div>
+    
+    <div class="session-stats" id="sessionStats"></div>
+  </div>
+
+  <!-- Sons -->
+  <audio id="gong" src="https://cdn.freesound.org/previews/20/20780_45941-lq.mp3"></audio>
+  <audio id="bip" src="https://cdn.freesound.org/previews/121/121400_1578278-lq.mp3"></audio>
+  <audio id="endSound" src="https://cdn.freesound.org/previews/518/518702_8031303-lq.mp3"></audio>
+
+  <script>
+    // Configuration des phases
+    const phases = [
+      { 
+        name: 'Respiration naturelle', 
+        description: 'Phase de préparation',
+        cycles: 3, 
+        pattern: [3, 3], 
+        labels: ['Inspirez', 'Expirez'],
+        color: '#6b1b86'
+      },
+      { 
+        name: 'Phase Éveil', 
+        description: 'Activation énergétique',
+        cycles: 3, 
+        pattern: [2, 3, 5, 8], 
+        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
+        color: '#7d3bb3'
+      },
+      { 
+        name: 'Phase Transition', 
+        description: 'Approfondissement',
+        cycles: 2, 
+        pattern: [3, 5, 8, 13], 
+        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
+        color: '#9750d7'
+      },
+      { 
+        name: 'Phase Immersion', 
+        description: 'Expérience profonde',
+        cycles: 2, 
+        pattern: [5, 8, 13, 21], 
+        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
+        color: '#b56dff'
+      },
+      { 
+        name: 'Phase Retour', 
+        description: 'Transition douce',
+        cycles: 2, 
+        pattern: [3, 5, 8, 13], 
+        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
+        color: '#9750d7'
+      },
+      { 
+        name: 'Phase Réveil', 
+        description: 'Retour à la conscience',
+        cycles: 3, 
+        pattern: [2, 3, 5, 8], 
+        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
+        color: '#7d3bb3'
+      },
+      { 
+        name: 'Respiration naturelle', 
+        description: 'Phase de conclusion',
+        cycles: 3, 
+        pattern: [5, 5], 
+        labels: ['Inspirez', 'Expirez'],
+        color: '#6b1b86'
+      },
+    ];
+
+    // DOM elements
+    const circle = document.getElementById('circle');
+    const timer = document.getElementById('timer');
+    const phaseTitle = document.getElementById('phaseTitle');
+    const phaseSubtitle = document.getElementById('phaseSubtitle');
+    const phaseInfo = document.getElementById('phaseInfo');
+    const progressBar = document.getElementById('progressBar');
+    const sessionStats = document.getElementById('sessionStats');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const gong = document.getElementById('gong');
+    const bip = document.getElementById('bip');
+    const endSound = document.getElementById('endSound');
+
+    // Variables état
+    let currentPhase = 0;
+    let currentCycle = 0;
+    let currentStep = 0;
+    let timeLeft = 0;
+    let timerId = null;
+    let isRunning = false;
+    let totalTime = 0;
+    let elapsedTime = 0;
+
+    // Calcul durée totale (en secondes)
+    function calculateTotalTime() {
+      return phases.reduce((total, phase) => {
+        const phaseTime = phase.pattern.reduce((sum, val) => sum + val, 0) * phase.cycles;
+        return total + phaseTime;
+      }, 0);
+    }
+
+    // Init
+    function init() {
+      totalTime = calculateTotalTime();
+      updateSessionStats();
+      resetDisplay();
+    }
+
+    function updateSessionStats() {
+      const minutes = Math.floor(totalTime / 60);
+      const seconds = totalTime % 60;
+      sessionStats.textContent = `Durée totale : ${minutes}min ${seconds}s | ${phases.length} phases`;
+    }
+
+    // Jouer un son en réinitialisant la lecture
+    function playSound(sound) {
+      sound.pause();
+      sound.currentTime = 0;
+      sound.play().catch(e => console.warn("Impossible de jouer le son:", e));
+    }
+
+    // Mise à jour progression
+    function updateProgress() {
+      const progress = (elapsedTime / totalTime) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+
+    // Mise à jour affichage
+    function updateDisplay(label, duration) {
+      const phase = phases[currentPhase];
+      
+      phaseTitle.textContent = `${phase.name} (${currentPhase + 1}/${phases.length})`;
+      phaseSubtitle.textContent = phase.description;
+      phaseInfo.textContent = `Cycle ${currentCycle + 1}/${phase.cycles} — ${label} ${duration}s`;
+      timer.textContent = duration;
+
+      // Cercle animation
+      circle.style.transitionDuration = `${duration}s`;
+
+      if (label.toLowerCase().includes('inspirez')) {
+        circle.style.transform = 'scale(1.15)';
+        circle.style.backgroundColor = phase.color;
+      } else if (label.toLowerCase().includes('expirez')) {
+        circle.style.transform = 'scale(0.85)';
+        circle.style.backgroundColor = '#3e125f';
+      } else {
+        circle.style.transform = label.toLowerCase().includes('pleine') ? 'scale(1.1)' : 'scale(0.9)';
+      }
+    }
+
+    // Reset affichage (avant démarrage)
+    function resetDisplay() {
+      phaseTitle.textContent = 'Prêt à commencer';
+      phaseSubtitle.textContent = '';
+      phaseInfo.textContent = '';
+      timer.textContent = '--';
+      circle.style.transform = 'scale(1)';
+      circle.style.backgroundColor = '#3e125f';
+      progressBar.style.width = '0%';
+    }
+
+    // Fonction principale avancée vers étape suivante
+    function nextStep() {
+      const phase = phases[currentPhase];
+      const label = phase.labels[currentStep];
+      const duration = phase.pattern[currentStep];
+
+      updateDisplay(label, duration);
+
+      // Son gong au début d'une phase, sinon bip sur étape
+      if (currentCycle === 0 && currentStep === 0) {
+        playSound(gong);
+      } else {
+        playSound(bip);
+      }
+
+      timeLeft = duration;
+
+      timerId = setInterval(() => {
+        timeLeft--;
+        timer.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerId);
+          elapsedTime += duration;
+          updateProgress();
+
+          currentStep++;
+          if (currentStep >= phase.pattern.length) {
+            currentStep = 0;
+            currentCycle++;
+
+            if (currentCycle >= phase.cycles) {
+              // Fin phase
+              currentCycle = 0;
+              currentPhase++;
+
+              if (currentPhase >= phases.length) {
+                endSession();
+                return;
+              }
+              // Gong entre phases
+              playSound(gong);
+            }
+          }
+          if (isRunning) {
+            nextStep();
+          }
+        }
+      }, 1000);
+    }
+
+    // Fin de session
+    function endSession() {
+      phaseTitle.textContent = 'Session terminée';
+      phaseSubtitle.textContent = '';
+      phaseInfo.textContent = 'Vous avez complété la respiration Golden Wave';
+      timer.textContent = '✓';
+      circle.style.transform = 'scale(1)';
+      circle.style.backgroundColor = '#3e125f';
+      progressBar.style.width = '100%';
+
+      playSound(endSound);
+      isRunning = false;
+      toggleButtons();
+    }
+
+    // Gestion boutons
+    function toggleButtons() {
+      startBtn.disabled = isRunning;
+      pauseBtn.disabled = !isRunning;
+      resetBtn.disabled = !isRunning && elapsedTime === 0;
+    }
+
+    // Événements boutons
+    startBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        isRunning = true;
+        toggleButtons();
+        // Au premier clic, si début total, jouer gong
+        if (elapsedTime === 0) playSound(gong);
+        nextStep();
+      }
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      clearInterval(timerId);
+      isRunning = false;
+      toggleButtons();
+      phaseInfo.textContent += ' (Pause à vide)';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(timerId);
+      isRunning = false;
+      currentPhase = 0;
+      currentCycle = 0;
+      currentStep = 0;
+      elapsedTime = 0;
+      timeLeft = 0;
+      resetDisplay();
+      toggleButtons();
+    });
+
+    // Initialisation à la charge
+    init();
+    toggleButtons();
+
+  </script>
+</body>
+</html>
