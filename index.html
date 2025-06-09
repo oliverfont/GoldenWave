@@ -131,98 +131,70 @@
 <body>
   <div class="container">
     <h1>Golden Wave Respiration</h1>
-    
-    <div class="progress-container">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
-    
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
     <div class="phase-header">
       <div class="phase-title" id="phaseTitle">Prêt à commencer</div>
       <div class="phase-subtitle" id="phaseSubtitle"></div>
     </div>
-    
     <div class="phase-info" id="phaseInfo"></div>
-    
-    <div class="circle" id="circle">
-      <div class="timer" id="timer">--</div>
-    </div>
-    
+    <div class="circle" id="circle"><div class="timer" id="timer">--</div></div>
     <div class="controls">
       <button id="startBtn">Démarrer</button>
       <button id="pauseBtn" disabled>Pause</button>
       <button id="resetBtn" disabled>Réinitialiser</button>
     </div>
-    
     <div class="session-stats" id="sessionStats"></div>
   </div>
 
   <!-- Sons -->
-  <audio id="gong" src="https://cdn.freesound.org/previews/20/20780_45941-lq.mp3"></audio>
+  <audio id="gong" src="https://cdn.pixabay.com/audio/2022/03/15/audio_f5c5b275c0.mp3"></audio>
   <audio id="bip" src="https://cdn.freesound.org/previews/121/121400_1578278-lq.mp3"></audio>
-  <audio id="endSound" src="https://cdn.freesound.org/previews/518/518702_8031303-lq.mp3"></audio>
+  <audio id="endSound" src="https://cdn.pixabay.com/audio/2022/03/28/audio_5b5580b477.mp3"></audio>
 
   <script>
-    // Configuration des phases
     const phases = [
-      { 
-        name: 'Respiration naturelle', 
-        description: 'Phase de préparation',
-        cycles: 3, 
-        pattern: [3, 3], 
-        labels: ['Inspirez', 'Expirez'],
-        color: '#6b1b86'
+      {
+        name: "1 - Équilibre",
+        description: "Phase d'amorce binaire",
+        cycles: 8,
+        pattern: [1, 1],
+        labels: ["Inspirez", "Expirez"],
+        color: "#6b1b86"
       },
-      { 
-        name: 'Phase Éveil', 
-        description: 'Activation énergétique',
-        cycles: 3, 
-        pattern: [2, 3, 5, 8], 
-        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
-        color: '#7d3bb3'
+      {
+        name: "2 - Fibonacci ϕ²",
+        description: "Stimulation douce du nerf vague",
+        cycles: 5,
+        pattern: [2, 3, 5, 8],
+        labels: ["Pause", "Inspirez", "Rétention Pleine", "Expirez"],
+        color: "#7d3bb3"
       },
-      { 
-        name: 'Phase Transition', 
-        description: 'Approfondissement',
-        cycles: 2, 
-        pattern: [3, 5, 8, 13], 
-        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
-        color: '#9750d7'
+      {
+        name: "3 - Alpha/Θ",
+        description: "Cycle proche 30s et nombre premier",
+        cycles: 3,
+        pattern: [3, 5, 8, 13],
+        labels: ["Pause", "Inspirez", "Rétention Pleine", "Expirez"],
+        color: "#9750d7"
       },
-      { 
-        name: 'Phase Immersion', 
-        description: 'Expérience profonde',
-        cycles: 2, 
-        pattern: [5, 8, 13, 21], 
-        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
-        color: '#b56dff'
+      {
+        name: "4 - Immersion",
+        description: "Stimulation progressive en profondeur",
+        cycles: 2,
+        pattern: [5, 8, 13, 21],
+        labels: ["Pause", "Inspirez", "Rétention Pleine", "Expirez"],
+        color: "#b56dff"
       },
-      { 
-        name: 'Phase Retour', 
-        description: 'Transition douce',
-        cycles: 2, 
-        pattern: [3, 5, 8, 13], 
-        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
-        color: '#9750d7'
-      },
-      { 
-        name: 'Phase Réveil', 
-        description: 'Retour à la conscience',
-        cycles: 3, 
-        pattern: [2, 3, 5, 8], 
-        labels: ['Pause', 'Inspirez', 'Rétention Pleine', 'Expirez'],
-        color: '#7d3bb3'
-      },
-      { 
-        name: 'Respiration naturelle', 
-        description: 'Phase de conclusion',
-        cycles: 3, 
-        pattern: [5, 5], 
-        labels: ['Inspirez', 'Expirez'],
-        color: '#6b1b86'
-      },
+      {
+        name: "5 - Hypoxie Contrôlée",
+        description: "Phase experte : activation maximale du nerf vague",
+        cycles: 1,
+        pattern: [8, 13, 21, 34],
+        labels: ["Pause", "Inspirez", "Rétention Pleine", "Expirez"],
+        color: "#d3a8ff"
+      }
     ];
 
-    // DOM elements
     const circle = document.getElementById('circle');
     const timer = document.getElementById('timer');
     const phaseTitle = document.getElementById('phaseTitle');
@@ -237,7 +209,6 @@
     const bip = document.getElementById('bip');
     const endSound = document.getElementById('endSound');
 
-    // Variables état
     let currentPhase = 0;
     let currentCycle = 0;
     let currentStep = 0;
@@ -247,7 +218,6 @@
     let totalTime = 0;
     let elapsedTime = 0;
 
-    // Calcul durée totale (en secondes)
     function calculateTotalTime() {
       return phases.reduce((total, phase) => {
         const phaseTime = phase.pattern.reduce((sum, val) => sum + val, 0) * phase.cycles;
@@ -255,7 +225,6 @@
       }, 0);
     }
 
-    // Init
     function init() {
       totalTime = calculateTotalTime();
       updateSessionStats();
@@ -268,31 +237,26 @@
       sessionStats.textContent = `Durée totale : ${minutes}min ${seconds}s | ${phases.length} phases`;
     }
 
-    // Jouer un son en réinitialisant la lecture
     function playSound(sound) {
       sound.pause();
       sound.currentTime = 0;
       sound.play().catch(e => console.warn("Impossible de jouer le son:", e));
     }
 
-    // Mise à jour progression
     function updateProgress() {
       const progress = (elapsedTime / totalTime) * 100;
       progressBar.style.width = `${progress}%`;
     }
 
-    // Mise à jour affichage
     function updateDisplay(label, duration) {
       const phase = phases[currentPhase];
-      
+
       phaseTitle.textContent = `${phase.name} (${currentPhase + 1}/${phases.length})`;
       phaseSubtitle.textContent = phase.description;
       phaseInfo.textContent = `Cycle ${currentCycle + 1}/${phase.cycles} — ${label} ${duration}s`;
       timer.textContent = duration;
 
-      // Cercle animation
       circle.style.transitionDuration = `${duration}s`;
-
       if (label.toLowerCase().includes('inspirez')) {
         circle.style.transform = 'scale(1.15)';
         circle.style.backgroundColor = phase.color;
@@ -300,11 +264,10 @@
         circle.style.transform = 'scale(0.85)';
         circle.style.backgroundColor = '#3e125f';
       } else {
-        circle.style.transform = label.toLowerCase().includes('pleine') ? 'scale(1.1)' : 'scale(0.9)';
+        circle.style.transform = label.toLowerCase().includes('pleine') ? 'scale(1.05)' : 'scale(0.95)';
       }
     }
 
-    // Reset affichage (avant démarrage)
     function resetDisplay() {
       phaseTitle.textContent = 'Prêt à commencer';
       phaseSubtitle.textContent = '';
@@ -315,7 +278,6 @@
       progressBar.style.width = '0%';
     }
 
-    // Fonction principale avancée vers étape suivante
     function nextStep() {
       const phase = phases[currentPhase];
       const label = phase.labels[currentStep];
@@ -323,7 +285,6 @@
 
       updateDisplay(label, duration);
 
-      // Son gong au début d'une phase, sinon bip sur étape
       if (currentCycle === 0 && currentStep === 0) {
         playSound(gong);
       } else {
@@ -347,7 +308,6 @@
             currentCycle++;
 
             if (currentCycle >= phase.cycles) {
-              // Fin phase
               currentCycle = 0;
               currentPhase++;
 
@@ -355,45 +315,37 @@
                 endSession();
                 return;
               }
-              // Gong entre phases
               playSound(gong);
             }
           }
-          if (isRunning) {
-            nextStep();
-          }
+          if (isRunning) nextStep();
         }
       }, 1000);
     }
 
-    // Fin de session
     function endSession() {
       phaseTitle.textContent = 'Session terminée';
       phaseSubtitle.textContent = '';
-      phaseInfo.textContent = 'Vous avez complété la respiration Golden Wave';
+      phaseInfo.textContent = 'Respiration complétée';
       timer.textContent = '✓';
       circle.style.transform = 'scale(1)';
       circle.style.backgroundColor = '#3e125f';
       progressBar.style.width = '100%';
-
       playSound(endSound);
       isRunning = false;
       toggleButtons();
     }
 
-    // Gestion boutons
     function toggleButtons() {
       startBtn.disabled = isRunning;
       pauseBtn.disabled = !isRunning;
       resetBtn.disabled = !isRunning && elapsedTime === 0;
     }
 
-    // Événements boutons
     startBtn.addEventListener('click', () => {
       if (!isRunning) {
         isRunning = true;
         toggleButtons();
-        // Au premier clic, si début total, jouer gong
         if (elapsedTime === 0) playSound(gong);
         nextStep();
       }
@@ -403,7 +355,7 @@
       clearInterval(timerId);
       isRunning = false;
       toggleButtons();
-      phaseInfo.textContent += ' (Pause à vide)';
+      phaseInfo.textContent += ' (Pause)';
     });
 
     resetBtn.addEventListener('click', () => {
@@ -418,10 +370,8 @@
       toggleButtons();
     });
 
-    // Initialisation à la charge
     init();
     toggleButtons();
-
   </script>
 </body>
 </html>
